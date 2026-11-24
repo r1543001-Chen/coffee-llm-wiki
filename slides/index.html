@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>一杯好咖啡的科學</title>
+<style>
+  :root {
+    --paper: #f6f1e7;
+    --ink: #2b1d14;
+    --muted: #7a6657;
+    --line: #dccfbc;
+    --card: #fffaf0;
+    --accent: #a4532a;
+    --accent-soft: #f0dccb;
+    --green: #4f6f52;
+    --green-soft: #dfe8dc;
+    --blue: #3f6377;
+    --blue-soft: #dbe6ec;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #1e1611; overflow: hidden; }
+  body { font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif; color: var(--ink); }
+  #stage { position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px; transform-origin: 0 0; }
+  .slide { position: absolute; inset: 0; background: var(--paper); padding: 56px 72px 76px; display: none; flex-direction: column; }
+  .slide.active { display: flex; }
+  .kicker { font-size: 18px; letter-spacing: .12em; color: var(--accent); font-weight: 700; margin: 0 0 10px; }
+  h1 { font-size: 68px; line-height: 1.15; margin: 0 0 18px; font-weight: 800; }
+  h2 { font-size: 42px; line-height: 1.2; margin: 0 0 26px; font-weight: 800; }
+  p, li { font-size: 25px; line-height: 1.6; margin: 0 0 12px; }
+  ul { margin: 0; padding-left: 1.1em; }
+  li { margin-bottom: 10px; }
+  .lead { font-size: 29px; color: var(--muted); }
+  .small { font-size: 20px; color: var(--muted); line-height: 1.55; }
+  strong { color: var(--accent); }
+  .cols { display: flex; gap: 36px; flex: 1; min-height: 0; }
+  .cols > * { flex: 1; min-width: 0; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px 26px; }
+  .card h3 { margin: 0 0 8px; font-size: 26px; }
+  .card p, .card li { font-size: 22px; margin-bottom: 6px; }
+  .big { font-size: 76px; font-weight: 800; color: var(--accent); line-height: 1; }
+  .big small { font-size: 26px; color: var(--muted); font-weight: 600; margin-left: 6px; }
+  .note { background: var(--accent-soft); border-left: 6px solid var(--accent); border-radius: 8px; padding: 14px 20px; font-size: 22px; line-height: 1.55; margin-top: auto; }
+  .note.green { background: var(--green-soft); border-color: var(--green); }
+  .src { position: absolute; left: 72px; right: 150px; bottom: 26px; font-size: 15px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; }
+  .pageno { position: absolute; right: 72px; bottom: 26px; font-size: 15px; color: var(--muted); padding-top: 10px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .flow { display: flex; align-items: stretch; gap: 18px; margin-top: 6px; }
+  .flow .arrow { align-self: center; font-size: 40px; color: var(--muted); }
+  .flow .box { flex: 1; border-radius: 14px; padding: 20px 22px; border: 1px solid var(--line); background: var(--card); }
+  .flow .box h3 { margin: 0 0 10px; font-size: 24px; }
+  .chip { display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 21px; margin: 4px 6px 4px 0; background: var(--accent-soft); }
+  .chip.g { background: var(--green-soft); } .chip.b { background: var(--blue-soft); }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { text-align: left; padding: 11px 14px; font-size: 21px; line-height: 1.4; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 18px; color: var(--muted); font-weight: 700; }
+  table.tight th, table.tight td { font-size: 18px; padding: 7px 12px; line-height: 1.35; }
+  .tag { display: inline-block; font-size: 16px; padding: 3px 10px; border-radius: 6px; font-weight: 700; white-space: nowrap; }
+  .tag.r { background: var(--accent-soft); color: var(--accent); }
+  .tag.g { background: var(--green-soft); color: var(--green); }
+  .tag.b { background: var(--blue-soft); color: var(--blue); }
+  .bar { height: 26px; border-radius: 6px; background: var(--accent); min-width: 4px; }
+  .bar.slow { background: var(--blue); }
+  .barrow { display: grid; grid-template-columns: 150px 1fr 90px; align-items: center; gap: 14px; font-size: 21px; margin-bottom: 10px; }
+  .formula { font-family: "Cambria Math", Cambria, Georgia, serif; font-size: 30px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 22px; text-align: center; margin: 4px 0 14px; }
+  .cover { justify-content: center; }
+  .cover .rule { width: 120px; height: 8px; background: var(--accent); border-radius: 4px; margin: 6px 0 30px; }
+  #nav { position: fixed; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(255,255,255,.12); }
+  #nav i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+  .hit { position: fixed; top: 0; bottom: 0; width: 18%; cursor: pointer; z-index: 5; }
+  .hit.l { left: 0; } .hit.r { right: 0; }
+  svg text { font-family: inherit; }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- 1 -->
+  <section class="slide cover">
+    <p class="kicker">教學簡報 · 由 LLM Wiki 產生</p>
+    <h1>一杯好咖啡的科學</h1>
+    <div class="rule"></div>
+    <p class="lead">四個旋鈕、兩個數字，以及為什麼沒有「標準答案」</p>
+    <p class="small" style="margin-top:36px">按 → 或空白鍵下一頁，← 上一頁。也可以點畫面左右兩側。</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="slide">
+    <p class="kicker">先從最基本的開始</p>
+    <h2>沖咖啡，其實是在做「萃取」</h2>
+    <div class="cols">
+      <div>
+        <p>用熱水把咖啡粉裡<strong>能溶於水的東西</strong>帶出來，再把渣濾掉。</p>
+        <p>咖啡粉不會整個溶掉。能被水帶走的只有一部分，剩下的就是咖啡渣。</p>
+        <p class="small">所以沖咖啡的問題可以簡化成兩個：<br>溶出了多少？溶出來的東西在水裡有多濃？</p>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;justify-content:center;">
+        <p class="small" style="margin-bottom:6px">咖啡粉中可被萃取的質量</p>
+        <div class="big">28–32<small>%</small></div>
+        <p style="margin-top:16px">90°C 的水，粗研磨約 28%，細研磨約 32%。</p>
+        <p class="small">其餘約七成不溶於水。</p>
+      </div>
+    </div>
+    <div class="src">來源：wiki/concepts/extraction-yield.md ← Moroney 等 2016</div>
+  </section>
+
+  <!-- 3 -->
+  <section class="slide">
+    <p class="kicker">全貌</p>
+    <h2>你能轉的旋鈕，和它們造成的結果</h2>
+    <div class="flow">
+      <div class="box">
+        <h3>旋鈕（你決定的）</h3>
+        <span class="chip">研磨粗細</span><span class="chip">沖煮時間</span><span class="chip">水溫</span><span class="chip">水質</span><span class="chip">粉水比</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="box">
+        <h3>結果（量得到的）</h3>
+        <span class="chip g">濃度 TDS</span><span class="chip g">萃取率 PE</span>
+      </div>
+      <div class="arrow">→</div>
+      <div class="box">
+        <h3>風味（喝到的）</h3>
+        <span class="chip b">酸</span><span class="chip b">苦</span><span class="chip b">甜感</span><span class="chip b">厚實</span><span class="chip b">茶感</span>
+      </div>
+    </div>
+    <p style="margin-top:30px">這份簡報的主線：研究顯示<strong>風味主要跟著「結果」走</strong>。不同的旋鈕組合只要達到相同的濃度與萃取率，喝起來就很接近。</p>
+    <div class="note">接下來先認識兩個數字，再一個一個看旋鈕。</div>
+    <div class="src">來源：wiki/synthesis/myths-vs-research.md（跨來源整合，屬 wiki 的推論）← Batali 等 2020、Guinard 等 2023</div>
+  </section>
+
+  <!-- 4 -->
+  <section class="slide">
+    <p class="kicker">兩個數字</p>
+    <h2>濃度與萃取率</h2>
+    <div class="grid2">
+      <div class="card">
+        <h3>濃度 TDS <span class="small">total dissolved solids</span></h3>
+        <p>咖啡<strong>液體</strong>裡，溶出物佔多少。</p>
+        <p class="small">描述的是「這杯有多濃」。</p>
+      </div>
+      <div class="card">
+        <h3>萃取率 PE <span class="small">percent extraction</span></h3>
+        <p>咖啡<strong>粉</strong>裡，有多少被帶走。</p>
+        <p class="small">描述的是「這些粉被用掉多少」。</p>
+      </div>
+    </div>
+    <p style="margin-top:22px">兩者被粉水比綁在一起，知道其中兩個，第三個就確定了：</p>
+    <div class="formula">PE = TDS ÷ (1 − TDS) × (水粉比 − 2.1)</div>
+    <p class="small">2.1 是每克咖啡粉吸住、留在渣裡的水量（近似值）。<br>試算：1 克粉配 16 克水、量到 TDS 1.3% → 0.013 ÷ 0.987 × 13.9 ≈ 萃取率 18.3%。（試算為依公式代入的示例）</p>
+    <div class="src">來源：wiki/concepts/tds.md、extraction-yield.md、brew-ratio.md ← Guinard 等 2023</div>
+  </section>
+
+  <!-- 5 -->
+  <section class="slide">
+    <p class="kicker">旋鈕一</p>
+    <h2>研磨：磨出來的粉並不均勻</h2>
+    <div class="cols">
+      <div>
+        <ul>
+          <li>同一次研磨，顆粒從 <strong>0.1 到 1000 微米</strong>都有。</li>
+          <li>數量上絕大多數是細粉，細粉也提供了大部分的表面積。</li>
+          <li>小顆粒萃取得快、大顆粒慢，所以不均勻會讓沖煮難控制。</li>
+        </ul>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <h3>產地會影響粒徑嗎？</h3>
+          <p><span class="tag g">不會</span> 四支不同產地、不同處理法的豆子，分布幾乎相同。</p>
+        </div>
+        <div class="card">
+          <h3>豆子的溫度呢？</h3>
+          <p><span class="tag r">會</span> 越冷磨得越細、越集中。從室溫降到液態氮溫度，最常見的粒徑縮小 <strong>31%</strong>。</p>
+        </div>
+      </div>
+    </div>
+    <div class="note">咖啡店一天下來常要把刻度調細，研究者認為是刀盤變熱造成的。<br><span class="small">限制：淺到中焙豆、單一磨豆機，沒有測量風味。「越均勻越好」目前沒有定論。</span></div>
+    <div class="src">來源：wiki/concepts/grind.md ← Uman 等 2016</div>
+  </section>
+
+  <!-- 6 -->
+  <section class="slide">
+    <p class="kicker">旋鈕二</p>
+    <h2>時間：萃取是先快後慢</h2>
+    <div class="cols">
+      <div>
+        <p><strong style="color:var(--accent)">快：表面溶解。</strong>研磨把顆粒表面的細胞磨破，裡面的東西一碰水就溶出。</p>
+        <p><strong style="color:var(--blue)">慢：內部擴散。</strong>顆粒內部的細胞是完整的，咖啡要沿著曲折的孔隙慢慢走出來。這一步是瓶頸。</p>
+        <p class="small">時間拉長，改變的是成分的相對比例：易溶的有機酸很早就出來，與苦澀有關的難溶成分需要更久。</p>
+      </div>
+      <div class="card">
+        <h3>模型估計的時間尺度</h3>
+        <p class="small" style="margin:10px 0 6px">細研磨</p>
+        <div class="barrow"><span>表面溶解</span><div class="bar" style="width:1%"></div><span>1.2 秒</span></div>
+        <div class="barrow"><span>內部擴散</span><div class="bar slow" style="width:15.6%"></div><span>42 秒</span></div>
+        <p class="small" style="margin:16px 0 6px">粗研磨</p>
+        <div class="barrow"><span>表面溶解</span><div class="bar" style="width:7.2%"></div><span>19 秒</span></div>
+        <div class="barrow"><span>內部擴散</span><div class="bar slow" style="width:100%"></div><span>270 秒</span></div>
+      </div>
+    </div>
+    <div class="note">注意：這些秒數來自「咖啡粉泡在水裡充分攪拌」的數學模型，不是手沖該沖幾秒的建議。</div>
+    <div class="src">來源：wiki/concepts/brew-time.md ← Moroney 等 2016；Batali 等 2020；Bratthäll 等 2024</div>
+  </section>
+
+  <!-- 7 -->
+  <section class="slide">
+    <p class="kicker">旋鈕三</p>
+    <h2>水溫：真的非 93°C 不可嗎？</h2>
+    <div class="cols">
+      <div>
+        <p><strong>常見說法</strong>：水溫是關鍵。精品咖啡協會（SCA）的咖啡機認證要求 92–96°C。</p>
+        <p><strong>實驗做法</strong>：同一支豆子，用 87、90、93°C 三種水溫沖，並調整其他條件，讓濃度與萃取率保持相同。</p>
+        <p class="small">27 種樣品、12 位受訓品評員盲測、評估 31 項風味屬性，飲用溫度統一為 65°C。</p>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;justify-content:center;">
+        <p class="small" style="margin-bottom:6px">31 項屬性中，隨水溫有顯著差異的</p>
+        <div class="big">1<small>項</small></div>
+        <p style="margin-top:16px">只有「堅果味」，而且只差 100 分裡的 <strong>1 分</strong>。</p>
+        <p class="small">研究者認為可能只是統計上的偶然。</p>
+      </div>
+    </div>
+    <div class="src">來源：wiki/concepts/brew-temperature.md ← Batali 等 2020</div>
+  </section>
+
+  <!-- 8 -->
+  <section class="slide">
+    <p class="kicker">旋鈕三（續）</p>
+    <h2>這不等於「水溫不重要」</h2>
+    <div class="grid2">
+      <div class="card">
+        <h3>正確的解讀</h3>
+        <ul>
+          <li>水溫會影響萃取的速度。</li>
+          <li>實驗是用研磨粗細、粉水比和水流速度把差異<strong>補回來</strong>。</li>
+          <li>所以水溫是旋鈕之一；決定風味的是最後達到的濃度與萃取率。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>這個結論的邊界</h3>
+        <ul>
+          <li>只測了 <strong>87–93°C</strong>。</li>
+          <li>只測了機器滴濾，一支阿拉比卡豆。</li>
+          <li>溫差更大時不適用：文獻中冷萃普遍被描述為較甜、較不酸。</li>
+          <li>義式濃縮可能對溫度更敏感。</li>
+        </ul>
+      </div>
+    </div>
+    <div class="note green">附帶好處：87°C 沖出的咖啡剛沖好時低 4–5°C，較不易燙傷；一杯咖啡約 99% 是水，少加熱一點也比較節能。</div>
+    <div class="src">來源：wiki/concepts/brew-temperature.md ← Batali 等 2020</div>
+  </section>
+
+  <!-- 9 -->
+  <section class="slide">
+    <p class="kicker">旋鈕四</p>
+    <h2>水質：研究最少的一塊</h2>
+    <div class="cols">
+      <div>
+        <p>水裡的礦物質會影響風味，這點業界有共識；但<strong>為什麼</strong>會影響，還不清楚。</p>
+        <table>
+          <tr><th>SCA 建議</th><th>範圍</th></tr>
+          <tr><td>總硬度（鈣、鎂）</td><td>50–175 ppm CaCO₃</td></tr>
+          <tr><td>鹼度（碳酸氫根）</td><td>40–70 ppm CaCO₃</td></tr>
+          <tr><td>pH</td><td>接近 7</td></tr>
+        </table>
+        <p class="small" style="margin-top:14px">已知的一點：碳酸鹽多的水會中和酸，喝起來較不酸。<br>2014 年的電腦計算曾推論：含鎂多的水萃取力最強。</p>
+      </div>
+      <div class="card">
+        <h3>2024 年的實驗來檢驗</h3>
+        <p>把鎂鹽、鈣鹽分別在<strong>沖煮前</strong>和<strong>沖煮後</strong>加入，再測四種有機酸的含量。</p>
+        <p>結果：兩種加法測到的酸含量大致相同。</p>
+        <p class="small">意思是這些酸溶不溶得出來，跟水裡有沒有鎂、鈣無關。水質的影響比較可能發生在沖好之後的杯子裡。</p>
+      </div>
+    </div>
+    <div class="src">來源：wiki/concepts/water-quality.md ← Bratthäll 等 2024；Hendon 等 2014</div>
+  </section>
+
+  <!-- 10 -->
+  <section class="slide">
+    <p class="kicker">旋鈕四（續）</p>
+    <h2>兩篇論文，結論相反</h2>
+    <table>
+      <tr><th style="width:18%"></th><th>Hendon 等（2014）</th><th>Bratthäll 等（2024）</th></tr>
+      <tr><td><strong>方法</strong></td><td>電腦計算：算離子與咖啡成分結合得多強，沒有實際沖煮</td><td>實驗：實際沖煮後做化學分析</td></tr>
+      <tr><td><strong>對象</strong></td><td>五種酸、咖啡因、丁香酚；鈉、鎂、鈣</td><td>四種酸；鎂、鈣</td></tr>
+      <tr><td><strong>結論</strong></td><td>鎂結合最強、鈣次之、鈉最弱，推論含鎂多的水萃取力最強</td><td>有機酸的萃取與鎂、鈣無關</td></tr>
+    </table>
+    <p style="margin-top:20px">兩篇重疊的是四種有機酸，在這個範圍內實驗沒有支持計算的推論。「結合得強」不等於「萃出得多」，計算論文的作者自己也說需要實驗檢驗。至於咖啡因等其他成分，還沒有人驗證。</p>
+    <div class="note">這是知識庫裡證據最薄弱的部分：兩篇都沒有處理碳酸氫根，也都沒有請人試喝。</div>
+    <div class="src">來源：wiki/concepts/water-quality.md ← Hendon 等 2014；Bratthäll 等 2024</div>
+  </section>
+
+  <!-- 11 -->
+  <section class="slide">
+    <p class="kicker">把一切收攏起來</p>
+    <h2>沖煮控制圖：一杯咖啡在圖上的位置</h2>
+    <div class="cols">
+      <div style="flex:1.25">
+        <svg viewBox="0 0 620 420" width="100%" role="img" aria-label="沖煮控制圖：橫軸萃取率 14 到 26%，縱軸濃度 0.8 到 1.6%，四個角落分別是酸與柑橘、苦與烘焙、甜感、茶感，中央為經典標準區">
+          <rect x="60" y="20" width="520" height="340" fill="#fffaf0" stroke="#dccfbc"/>
+          <rect x="60" y="20" width="260" height="170" fill="#f3e3b3" opacity=".55"/>
+          <rect x="320" y="20" width="260" height="170" fill="#d9c0ad" opacity=".6"/>
+          <rect x="60" y="190" width="260" height="170" fill="#f1d3d6" opacity=".55"/>
+          <rect x="320" y="190" width="260" height="170" fill="#cfe0e6" opacity=".6"/>
+          <rect x="233.3" y="126.2" width="173.4" height="85" fill="#ffffff" fill-opacity=".8" stroke="#7a6657" stroke-dasharray="6 4"/>
+          <text x="320" y="165" text-anchor="middle" font-size="16" fill="#7a6657" font-weight="700">經典標準</text>
+          <text x="320" y="186" text-anchor="middle" font-size="13" fill="#7a6657">1.15–1.35%・18–22%</text>
+          <text x="80" y="62" font-size="24" font-weight="800" fill="#8a6a00">酸・柑橘</text>
+          <text x="560" y="62" font-size="24" font-weight="800" fill="#5a3320" text-anchor="end">苦・烘焙味</text>
+          <text x="80" y="335" font-size="24" font-weight="800" fill="#a23b4a">「甜」</text>
+          <text x="560" y="335" font-size="24" font-weight="800" fill="#2f5b70" text-anchor="end">紅茶感</text>
+          <text x="320" y="48" font-size="15" fill="#7a6657" text-anchor="middle">厚實</text>
+          <text x="320" y="348" font-size="15" fill="#7a6657" text-anchor="middle">稀薄</text>
+          <g font-size="14" fill="#7a6657" text-anchor="middle">
+            <text x="60" y="380">14</text><text x="233.3" y="380">18</text><text x="406.7" y="380">22</text><text x="580" y="380">26</text>
+          </g>
+          <g font-size="14" fill="#7a6657" text-anchor="end">
+            <text x="52" y="25">1.6</text><text x="52" y="195">1.2</text><text x="52" y="365">0.8</text>
+          </g>
+          <text x="320" y="410" font-size="17" fill="#2b1d14" text-anchor="middle" font-weight="700">萃取率 PE（%）→</text>
+          <text x="18" y="190" font-size="17" fill="#2b1d14" text-anchor="middle" font-weight="700" transform="rotate(-90 18 190)">濃度 TDS（%）→</text>
+        </svg>
+      </div>
+      <div>
+        <p><strong>傳統版（1957）</strong>把中央標為「理想」，四周標為太濃、太淡、發展不足、苦。</p>
+        <p><strong>新版（2023）</strong>根據實驗重畫：四個角落不是「錯」，而是四種不同的風味。</p>
+        <p class="small">「甜」加了引號：那不是糖的甜，而是少了苦和酸之後的甜感印象。</p>
+        <p class="small">左圖為依論文內容重新繪製的示意圖，風味位置為大致方位。</p>
+      </div>
+    </div>
+    <div class="src">來源：wiki/concepts/brewing-control-chart.md ← Guinard 等 2023；Batali 等 2020</div>
+  </section>
+
+  <!-- 12 -->
+  <section class="slide">
+    <p class="kicker">最重要的一頁</p>
+    <h2>沒有唯一的「理想」</h2>
+    <div class="grid2">
+      <div class="card">
+        <div class="big">57<small>% 的人</small></div>
+        <p style="margin-top:14px">最喜歡<strong>低濃度</strong>、低到中等萃取率，也就是圖的左下角。</p>
+        <p class="small">可以說他們喜歡甜感，也可以說他們不喜歡苦和酸。</p>
+      </div>
+      <div class="card">
+        <div class="big" style="color:var(--blue)">43<small>% 的人</small></div>
+        <p style="margin-top:14px">同樣喜歡<strong>兩種很不一樣</strong>的咖啡：偏酸偏果香的，以及偏烘焙偏厚實的。</p>
+        <p class="small">喜好分布像一個馬鞍，兩端高、中間低。</p>
+      </div>
+    </div>
+    <p style="margin-top:22px">把所有人平均，最高點確實落在傳統的「理想」區附近。但那是把兩群不同的人平均掉的結果，新版因此把它改名為「經典標準」。</p>
+    <div class="note">邊界：受測者主要是北加州的年輕成人，都喝黑咖啡。換一群人，分出來的群可能不同。</div>
+    <div class="src">來源：wiki/concepts/brewing-control-chart.md ← Guinard 等 2023</div>
+  </section>
+
+  <!-- 13 -->
+  <section class="slide">
+    <p class="kicker">整理</p>
+    <h2>常見說法 vs. 研究結果</h2>
+    <table>
+      <tr><th style="width:30%">常見說法</th><th>研究怎麼說</th><th style="width:15%">判定</th></tr>
+      <tr><td>水溫一定要 92–96°C</td><td>濃度與萃取率相同時，87–93°C 的滴濾咖啡嚐不出差別</td><td><span class="tag r">被挑戰</span></td></tr>
+      <tr><td>有人人適用的理想範圍</td><td>消費者至少分兩群，喜好位置不同</td><td><span class="tag r">被挑戰</span></td></tr>
+      <tr><td>萃取不足會偏酸</td><td>低萃取率時酸、柑橘、莓果風味最強</td><td><span class="tag g">有支持</span></td></tr>
+      <tr><td>萃取率越高越苦</td><td>一項實驗中苦只跟濃度有關，另一項顯示兩者都有關</td><td><span class="tag b">未定論</span></td></tr>
+      <tr><td>不同產地要用不同刻度</td><td>四支豆子的粒徑分布幾乎相同（淺中焙）</td><td><span class="tag r">被挑戰</span></td></tr>
+      <tr><td>含鎂多的水萃取更多風味</td><td>計算顯示鎂結合最強，但針對有機酸的實驗不支持</td><td><span class="tag b">互相牴觸</span></td></tr>
+    </table>
+    <p class="small" style="margin-top:14px">「被挑戰」不等於「被推翻」：每項研究都有適用範圍。</p>
+    <div class="src">來源：wiki/synthesis/myths-vs-research.md ← 全部六篇</div>
+  </section>
+
+  <!-- 14 -->
+  <section class="slide">
+    <p class="kicker">結語</p>
+    <h2>帶走的三件事</h2>
+    <div class="cols" style="flex:none">
+      <div class="card">
+        <div class="big" style="font-size:54px">1</div>
+        <h3 style="margin-top:12px">風味跟著結果走</h3>
+        <p>研磨、時間、水溫、粉水比是手段；濃度與萃取率才是決定風味的那兩個數字。</p>
+      </div>
+      <div class="card">
+        <div class="big" style="font-size:54px">2</div>
+        <h3 style="margin-top:12px">每個結論都有邊界</h3>
+        <p>「87–93°C、滴濾式」的發現，不能直接套到冷萃或義式。</p>
+      </div>
+      <div class="card">
+        <div class="big" style="font-size:54px">3</div>
+        <h3 style="margin-top:12px">沒有唯一的理想</h3>
+        <p>控制圖是地圖，不是評分表。先知道自己喜歡哪個角落，再調旋鈕過去。</p>
+      </div>
+    </div>
+    <div class="note" style="margin-top:28px">還不知道的事：水溫改變萃取速度的幅度、水質如何改變喝到的味道、手沖的具體參數。這些在知識庫裡都標為缺口。</div>
+    <div class="src">來源：wiki/synthesis/myths-vs-research.md、wiki/index.md（知識缺口）</div>
+  </section>
+
+  <!-- 15 -->
+  <section class="slide">
+    <p class="kicker">附錄</p>
+    <h2 style="margin-bottom:14px">資料來源與製作方式</h2>
+    <table class="tight">
+      <tr><th style="width:14%">變數</th><th>論文</th></tr>
+      <tr><td>研磨</td><td>Uman 等（2016）The effect of bean origin and temperature on grinding roasted coffee. <i>Scientific Reports</i> 6, 24483.</td></tr>
+      <tr><td>時間</td><td>Moroney 等（2016）Coffee extraction kinetics in a well mixed system. <i>Journal of Mathematics in Industry</i> 7:3.</td></tr>
+      <tr><td>水溫</td><td>Batali 等（2020）Brew temperature, at fixed brew strength and extraction, has little impact on the sensory profile of drip brew coffee. <i>Scientific Reports</i> 10, 16450.</td></tr>
+      <tr><td>水質</td><td>Hendon 等（2014）The Role of Dissolved Cations in Coffee Extraction. <i>Journal of Agricultural and Food Chemistry</i> 62(21), 4947–4950.</td></tr>
+      <tr><td>水質</td><td>Bratthäll 等（2024）Influence of divalent cations on the extraction of organic acids in coffee determined by GC-MS and NMR. <i>Heliyon</i>.</td></tr>
+      <tr><td>整合</td><td>Guinard 等（2023）A new Coffee Brewing Control Chart… <i>Journal of Food Science</i> 88, 2168–2177.</td></tr>
+    </table>
+    <p class="small" style="margin-top:12px;font-size:18px">製作流程：取得論文 → 逐篇整理進 LLM Wiki 並回查原文 → 自動與人工檢查 → 查詢 wiki 寫成大綱 → 大綱對照 wiki → 產生簡報 → 瀏覽器實測。<br>簡報中的數字都能經由每頁下方標示的 wiki 頁面追溯到論文原文。</p>
+    <div class="src">來源：wiki/index.md、wiki/log.md</div>
+  </section>
+
+</div>
+<div class="hit l" id="prev" aria-label="上一頁"></div>
+<div class="hit r" id="next" aria-label="下一頁"></div>
+<div id="nav"><i></i></div>
+<script>
+  const stage = document.getElementById('stage');
+  const slides = [...document.querySelectorAll('.slide')];
+  const bar = document.querySelector('#nav i');
+  let cur = 0;
+  slides.forEach((s, i) => {
+    const n = document.createElement('div');
+    n.className = 'pageno';
+    n.textContent = (i + 1) + ' / ' + slides.length;
+    s.appendChild(n);
+  });
+  function fit() {
+    const k = Math.min(innerWidth / 1280, innerHeight / 720);
+    stage.style.transform = 'scale(' + k + ') translate(-50%, -50%)';
+  }
+  function show(i) {
+    cur = Math.max(0, Math.min(slides.length - 1, i));
+    slides.forEach((s, j) => s.classList.toggle('active', j === cur));
+    bar.style.width = ((cur + 1) / slides.length * 100) + '%';
+    try { history.replaceState(null, '', '#' + (cur + 1)); } catch (e) { /* 某些預覽環境不允許改網址，不影響翻頁 */ }
+  }
+  addEventListener('resize', fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(document.documentElement);
+  addEventListener('keydown', e => {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); show(cur + 1); }
+    else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); show(cur - 1); }
+    else if (e.key === 'Home') show(0);
+    else if (e.key === 'End') show(slides.length - 1);
+  });
+  document.getElementById('next').onclick = () => show(cur + 1);
+  document.getElementById('prev').onclick = () => show(cur - 1);
+  fit();
+  show((parseInt(location.hash.slice(1)) || 1) - 1);
+</script>
+</body>
+</html>
